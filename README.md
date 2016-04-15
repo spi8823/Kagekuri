@@ -1,0 +1,2 @@
+# Kagekuri
+SRPGを作る
