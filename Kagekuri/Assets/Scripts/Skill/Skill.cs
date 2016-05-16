@@ -6,7 +6,7 @@ namespace Kagekuri
 {
     public enum SkillType
     {
-        Test, 
+        Test1, Test2,  
     }
 
     /// <summary>
@@ -46,12 +46,17 @@ namespace Kagekuri
 
         public static Skill GetSkill(CharacterUnit unit, SkillData data)
         {
+            Skill skill = null;
             switch(data.Type)
             {
-                case SkillType.Test:
-                    break;  
+                case SkillType.Test1:
+                    skill = new TestSkill1(unit, data);
+                    break;
+                case SkillType.Test2:
+                    skill = new TestSkill2(unit, data);
+                    break;
             }
-            return null;
+            return skill;
         }
     }
 

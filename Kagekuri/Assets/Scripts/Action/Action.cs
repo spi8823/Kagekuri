@@ -169,6 +169,7 @@ namespace Kagekuri
 
         private void InitializeSkills(CharacterUnit unit, List<SkillData> skillDatas)
         {
+            Skills = new List<Skill>();
             foreach(var data in skillDatas)
             {
                 var skill = Skill.GetSkill(unit, data);

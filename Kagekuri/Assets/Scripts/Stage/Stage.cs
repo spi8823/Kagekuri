@@ -14,14 +14,44 @@ namespace Kagekuri
         public Field Field { get; private set; }
         public Script EventScript { get; private set; }
 
+        public List<Unit> Units { get; private set; }
+        public List<ActiveUnit> ActiveUnits { get; private set; }
+        public List<CharacterUnit> CharacterUnits { get; private set; }
+
         private IEnumerator _ButtleCoroutine;
         private IEnumerator _EventCoroutine;
-        public bool IsExclusiveEvent;
+        public bool IsExclusiveEvent { get; private set; }
 
         public Stage(StageData data)
         {
             Field = new Field(data.FieldData, this);
             InitializeEventScript(data.EventNumber);
+
+            _ButtleCoroutine = ProceedButtle();
+            _EventCoroutine = ProceedEvent();
+            IsExclusiveEvent = false;
+
+            Units = new List<Unit>();
+            ActiveUnits = new List<ActiveUnit>();
+            CharacterUnits = new List<CharacterUnit>();
+            foreach(var item in data.UnitDatas)
+            {
+                Unit unit = Unit.GetUnit(item, Field);
+                Units.Add(unit);
+            }
+            foreach(var item in data.ActiveUnitDatas)
+            {
+                ActiveUnit unit = ActiveUnit.GetActiveUnit(item, Field);
+                Units.Add(unit);
+                ActiveUnits.Add(unit);
+            }
+            foreach(var item in data.CharacterUnitDatas)
+            {
+                CharacterUnit unit = CharacterUnit.GetCharacterUnit(item, Field);
+                Units.Add(unit);
+                ActiveUnits.Add(unit);
+                CharacterUnits.Add(unit);
+            }
         }
 
         public void InitializeEventScript(int eventNumber)
@@ -38,7 +68,10 @@ namespace Kagekuri
             bool isButtleEnd = false;
             bool isEventEnd = false;
 
-            while (!isButtleEnd && !isEventEnd)
+            _ButtleCoroutine = ProceedButtle();
+            _EventCoroutine = ProceedEvent();
+
+            while (!isButtleEnd || !isEventEnd)
             {
                 if (!IsExclusiveEvent && !isButtleEnd)
                     isButtleEnd = !_ButtleCoroutine.MoveNext();
@@ -46,9 +79,10 @@ namespace Kagekuri
                 if (!isEventEnd)
                     isEventEnd = !_EventCoroutine.MoveNext();
 
-                yield return null;
+                yield return true;
             }
 
+            yield return false;
             yield break;
         }
 
@@ -56,33 +90,46 @@ namespace Kagekuri
         {
             IEnumerator coroutine;
 
+            //バトル開始
             coroutine = StartButtle();
-            yield return new WaitWhile(() => coroutine.MoveNext());
+            while (coroutine.MoveNext()) { yield return true; }
 
+            //バトル本番
             while(!JudgeButtleEnd())
             {
                 coroutine = Buttle();
-                yield return new WaitWhile(() => coroutine.MoveNext());
+                while (coroutine.MoveNext()) { yield return true; }
 
-                if (!(bool)coroutine.Current)
+                bool? flag = coroutine.Current as bool?;
+                if (flag != null && flag == false)
                     break;
             }
 
+            //バトル終了
             coroutine = EndButtle();
-            yield return new WaitWhile(() => coroutine.MoveNext());
+            while (coroutine.MoveNext()) { yield return true; }
 
+            yield return true;
             yield break;
         }
 
+        /// <summary>
+        /// バトル開始
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator StartButtle()
         {
             yield break;
         }
 
+        /// <summary>
+        /// バトル
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator Buttle()
         {
             double? minWaitTime = null;
-            foreach (var activeUnit in Field.ActiveUnits)
+            foreach (var activeUnit in ActiveUnits)
             {
                 if (activeUnit == null)
                     continue;
@@ -92,19 +139,22 @@ namespace Kagekuri
                 if (minWaitTime == null || waitTime < minWaitTime)
                     minWaitTime = waitTime;
             }
-
+            
             if (minWaitTime == null)
             {
                 yield return false;
                 yield break;
             }
 
-            foreach (var activeUnit in Field.ActiveUnits)
+            Debug.Log("MinWaitTime:" + minWaitTime);
+
+            foreach (var activeUnit in ActiveUnits)
             {
                 if (activeUnit.Wait((double)minWaitTime))
                 {
+                    Debug.Log("Act");
                     IEnumerator act = activeUnit.Act();
-                    yield return new WaitWhile(() => act.MoveNext());
+                    while (act.MoveNext()) { yield return null; }
                 }
             }
 
@@ -114,7 +164,7 @@ namespace Kagekuri
 
         private bool JudgeButtleEnd()
         {
-            return true;
+            return false;
         }
 
         private IEnumerator EndButtle()

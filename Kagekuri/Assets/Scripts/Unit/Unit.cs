@@ -6,13 +6,24 @@ namespace Kagekuri
 {
     public enum UnitType
     {
-        Player, 
+        TestUnit1, TestUnit2, 
+    }
+
+    public enum ActiveUnitType
+    {
+        TestActiveUnit1, TestActiveUnit2, 
+    }
+
+    public enum CharacterUnitType
+    {
+        TestCharacterUnit1, TestCharacterUnit2, 
     }
 
     public abstract class Unit
     {
         public const int ParameterCount = 0;
 
+        public UnitType Type;
         public Square Square { get; protected set; }
         public Point Location { get { return Square.Location; } }
         public Point Direction { get; protected set; }
@@ -33,6 +44,21 @@ namespace Kagekuri
             if (Square.Unit != this)
                 Square.SetUnit(this);
         }
+
+        public static Unit GetUnit(UnitData data, Field field)
+        {
+            Unit unit = null;
+            switch(data.Type)
+            {
+                case UnitType.TestUnit1:
+                    unit = new TestUnit1(data, field);
+                    break;
+                case UnitType.TestUnit2:
+                    unit = new TestUnit2(data, field);
+                    break;
+            }
+            return unit;
+        }
     }
 
     /// <summary>
@@ -40,6 +66,7 @@ namespace Kagekuri
     /// </summary>
     public abstract class ActiveUnit : Unit
     {
+        public new ActiveUnitType Type;
         /// <summary>
         /// アクティブポイントの上限
         /// アクティブポイントがこの値になると行動できる
@@ -87,20 +114,30 @@ namespace Kagekuri
         /// 
         /// </summary>
         /// <returns></returns>
-        public virtual IEnumerator Act() { yield return true; }
+        public virtual IEnumerator Act()
+        {
+            Debug.Log("順番回ってきた");
+            Debug.Log(Location.ToString());
+            AP = 0;
+            while(!InputController.GetButtonDown(InputController.Button.A))
+            {
+                yield return false;
+            }
+            yield return true;
+        }
 
         public bool Wait(double time)
         {
             if (!IsCharging)
             {
                 AP += Speed * time;
-                if (MaxAP < AP)
+                if (MaxAP <= AP)
                     return true;
             }
             else
             {
                 AP += ChargingSpeedRate * Speed * time;
-                if (ChargingAPExpantionRate * MaxAP < AP)
+                if (ChargingAPExpantionRate * MaxAP <= AP)
                 {
                     AP = ChargingAPExpantionRate * MaxAP;
                     return true;
@@ -124,6 +161,21 @@ namespace Kagekuri
                 return (ChargingAPExpantionRate * MaxAP - AP) / (ChargingSpeedRate * Speed);
             } 
         }
+
+        public static ActiveUnit GetActiveUnit(ActiveUnitData data, Field field)
+        {
+            ActiveUnit unit = null;
+            switch(data.Type)
+            {
+                case ActiveUnitType.TestActiveUnit1:
+                    unit = new TestActiveUnit1(data, field);
+                    break;
+                case ActiveUnitType.TestActiveUnit2:
+                    unit = new TestActiveUnit2(data, field);
+                    break;
+            }
+            return unit;
+        }
     }
 
     /// <summary>
@@ -132,6 +184,7 @@ namespace Kagekuri
     /// </summary>
     public abstract class CharacterUnit : ActiveUnit
     {
+        public new CharacterUnitType Type;
         #region Status
         public int Level { get; protected set; }
         public int ExP { get; protected set; }
@@ -200,6 +253,7 @@ namespace Kagekuri
             Charge = new Charge(this);
             UseSkill = new UseSkill(this, data.SkillDatas);
 
+            Actions = new List<Action>();
             Actions.Add(Move);
             Actions.Add(UseItem);
             Actions.Add(Charge);
@@ -219,6 +273,21 @@ namespace Kagekuri
         public override void Attacked(Skill skill)
         {
             base.Attacked(skill);
+        }
+
+        public static CharacterUnit GetCharacterUnit(CharacterUnitData data, Field field)
+        {
+            CharacterUnit unit = null;
+            switch (data.Type)
+            {
+                case CharacterUnitType.TestCharacterUnit1:
+                    unit = new TestCharacterUnit1(data, field);
+                    break;
+                case CharacterUnitType.TestCharacterUnit2:
+                    unit = new TestCharacterUnit2(data, field);
+                    break;
+            }
+            return unit;
         }
     }
 
@@ -350,7 +419,7 @@ namespace Kagekuri
     /// </summary>
     public class UnitData
     {
-        public string ClassName;
+        public UnitType Type;
         public Point Location;
         public Point Direction;
 
@@ -359,6 +428,7 @@ namespace Kagekuri
 
     public class ActiveUnitData : UnitData
     {
+        public new ActiveUnitType Type;
         public int RawMaxAP;
         public int RawSpeed;
         public double WaitingAPExpantionRate;
@@ -367,6 +437,7 @@ namespace Kagekuri
 
     public class CharacterUnitData : ActiveUnitData
     {
+        public new CharacterUnitType Type;
         public int Level;
         public int ExP;
 

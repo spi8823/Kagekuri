@@ -6,10 +6,10 @@ namespace Kagekuri
 {
     public class ButtleManager : MonoBehaviour
     {
-        private GameManager _GameManager;
-        private Stage _Stage;
+        public GameManager GameManager { get; private set; }
+        public Stage Stage { get; private set; }
         private IEnumerator _StageCoroutine;
-        private bool IsPaused = false;
+        public bool IsPaused { get; private set; }
 
         private void Awake()
         {
@@ -18,14 +18,15 @@ namespace Kagekuri
 
         public void Initialize(GameManager gameManager, StageData data)
         {
-            _GameManager = gameManager;
-            _Stage = new Stage(data);
+            IsPaused = false;
+            GameManager = gameManager;
+            Stage = new Stage(data);
+            _StageCoroutine = Stage.Proceed();
         }
 
         // Use this for initialization
         private void Start()
         {
-            _StageCoroutine = _Stage.Proceed();
         }
 
         // Update is called once per frame
@@ -37,6 +38,7 @@ namespace Kagekuri
             if(!IsPaused)
             {
                 _StageCoroutine.MoveNext();
+                
             }
             else
             {

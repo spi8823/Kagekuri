@@ -8,21 +8,18 @@ namespace Kagekuri
     {
         public Stage Stage { get; private set; }
 
-        public List<Unit> Units { get; private set; }
-        public List<ActiveUnit> ActiveUnits { get; private set; }
-
         public readonly int Width;
         public readonly int Height;
+        public readonly Point Size;
 
         private Square[,] _Squares;
 
         public Field(FieldData data, Stage stage)
         {
             Stage = stage;
+            Size = data.Size;
 
-            Width = data.Width;
-            Height = data.Height;
-            _Squares = new Square[Width, Height];
+            _Squares = new Square[Size.X, Size.Y];
 
             foreach (var i in data.SquareDatas)
                 foreach (var j in i)
@@ -137,8 +134,7 @@ namespace Kagekuri
     
     public class FieldData
     {
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public Point Size { get; set; }
 
         public SquareData[][] SquareDatas { get; set; }
 
