@@ -21,7 +21,7 @@ namespace Kagekuri
 
         public double? GetValue(Unit from, Unit to)
         {
-            Point vector = to.Location - from.Location;
+            Point vector = to.Position - from.Position;
             return GetValue(vector, from.Direction);
         }
 
@@ -61,7 +61,7 @@ namespace Kagekuri
 
         public double? GetValue(Unit unit)
         {
-            return GetValue(unit.Location);
+            return GetValue(unit.Position);
         }
 
         public bool IsContains(Unit from, Unit to)
@@ -84,7 +84,7 @@ namespace Kagekuri
 
         public bool IsContains(Unit unit)
         {
-            return IsContains(unit.Location);
+            return IsContains(unit.Position);
         }
     }
 }

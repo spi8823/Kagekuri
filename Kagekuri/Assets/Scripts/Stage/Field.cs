@@ -1,96 +1,177 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Kagekuri
 {
-    public class Field
+    public class Field : MonoBehaviour
     {
+        private static GameObject _FieldPrefab = null;
         public Stage Stage { get; private set; }
 
-        public readonly int Width;
-        public readonly int Height;
-        public readonly Point Size;
+        public int ID { get; private set; }
+        public string Name { get; private set; }
+        public string Discription { get; private set; }
+        public int Width { get; private set;}
+        public int Depth { get; private set; }
+        private List<GameObject> _PanelList = new List<GameObject>();
 
-        private Square[,] _Squares;
+        private Square[,] _Squares { get; set; }
 
-        public Field(FieldData data, Stage stage)
+        public IEnumerator<Square> SelectSquare(Point startPosition, Range range)
         {
-            Stage = stage;
-            Size = data.Size;
-
-            _Squares = new Square[Size.X, Size.Y];
-
-            foreach (var i in data.SquareDatas)
-                foreach (var j in i)
-                {
-                    var square = new Square(j, this);
-                    this[square.Location.X, square.Location.Y] = square;
-                }
-        }
-
-        #region マス目選択
-        /// <summary>
-        /// マス目の選択を始める
-        /// </summary>
-        /// <param name="range"></param>
-        /// <param name="center"></param>
-        public void StartSelectingSquare(Range range, Point center, Point direction)
-        {
-            Debug.Log("実装されてないよ！！");
-        }
-
-        /// <summary>
-        /// マス目の選択を終わる
-        /// </summary>
-        public void EndSelectingSuqare()
-        {
-            Debug.Log("実装されてないよ！！");
-        }
-
-        /// <summary>
-        /// 今カーソルされているマス目を返す
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerator SelectSquare(Range range, Point center, Point direction, Point initialPos)
-        {
-            StartSelectingSquare(range, center, direction);
-
-            Point now = initialPos;
-
-            while(true)
+            var selectedPosition = startPosition;
+            var prefab = Resources.Load<GameObject>("Prefab/Other/MoveDestinationCandidatePanel");
+            var list = new List<GameObject>();
+            GameObject panel;
+            foreach(var item in range.Points)
+            {
+                panel = Instantiate(prefab);
+                var position = item.Key;
+                position.Z = this[item.Key].Height - 0.01;
+                panel.transform.position = position.ToUnityPosition();
+                list.Add(panel);
+            }
+            _PanelList.AddRange(list);
+            prefab = Resources.Load<GameObject>("Prefab/Other/SelectingSquarePanel");
+            panel = Instantiate(prefab);
+            _PanelList.Add(panel);
+            while(!InputController.GetButtonDown(InputController.Button.B))
             {
                 if (InputController.GetButtonDown(InputController.Button.A))
                 {
-                    if (range.IsContains(now - center, direction))
+                    foreach(var item in range.Points)
                     {
-                        EndSelectingSuqare();
-                        yield break;
+                        if(item.Key.EqualsRoughly(selectedPosition))
+                        {
+                            yield return this[selectedPosition];
+                            yield break;
+                        }
                     }
                 }
 
-                int x = InputController.GetAxisDown(InputController.Axis.Cross_Horizontal);
-                int y = InputController.GetAxisDown(InputController.Axis.Cross_Vertical);
+                selectedPosition += new Point(InputController.GetAxisPeriodicly(InputController.Axis.Cross_Horizontal), InputController.GetAxisPeriodicly(InputController.Axis.Cross_Vertical));
+                selectedPosition.X = selectedPosition.X < 0 ? 0 : (Width <= selectedPosition.X ? Width - 1 : selectedPosition.X);
+                selectedPosition.Y = selectedPosition.Y < 0 ? 0 : (Depth <= selectedPosition.Y ? Depth - 1 : selectedPosition.Y);
+                selectedPosition.Z = this[selectedPosition].Height - 0.005;
+                panel.transform.position = selectedPosition.ToUnityPosition();
+                var square = this[selectedPosition];
+                if (square.Unit is ActiveUnit)
+                    StatusPanel.Instance.ShowSub(square.Unit as ActiveUnit);
+                else
+                    StatusPanel.Instance.HideSub();
+                yield return null;
+            }
 
-                Point next = now + new Point(x, y);
-                if (this[next] != null)
-                    now = next;
+            yield return null;
+        }
 
-                yield return now;
+        public void DeletePanels()
+        {
+            foreach(var panel in _PanelList)
+            {
+                Destroy(panel);
             }
         }
-        #endregion
+
+        public IEnumerator ViewField(Point startPosition)
+        {
+            StatusPanel.Instance.HideAll();
+            var selectedPosition = startPosition;
+            var panel = Instantiate(Resources.Load<GameObject>("Prefab/Other/SelectingSquarePanel"));
+            while(!InputController.GetButtonDown(InputController.Button.B))
+            {
+                if(InputController.GetButtonDown(InputController.Button.A))
+                {
+
+                }
+
+                selectedPosition += new Point(InputController.GetAxisPeriodicly(InputController.Axis.Cross_Horizontal), InputController.GetAxisPeriodicly(InputController.Axis.Cross_Vertical));
+                selectedPosition.X = selectedPosition.X < 0 ? 0 : (Width - 1 < selectedPosition.X ? Width - 1 : selectedPosition.X);
+                selectedPosition.Y = selectedPosition.Y < 0 ? 0 : (Depth - 1 < selectedPosition.Y ? Depth - 1 : selectedPosition.Y);
+                selectedPosition.Z = this[selectedPosition].Height - 0.005;
+                panel.transform.position = selectedPosition.ToUnityPosition();
+                var square = this[selectedPosition];
+                if (square.Unit is ActiveUnit)
+                    StatusPanel.Instance.ShowSub(square.Unit as ActiveUnit);
+                else
+                    StatusPanel.Instance.HideSub();
+                yield return null;
+            }
+            Destroy(panel);
+            Debug.Log("実装してない");
+            yield return null;
+        }
+
+        public static Field Create(string filename, Stage stage)
+        {
+            if (_FieldPrefab == null)
+                _FieldPrefab = Resources.Load<GameObject>("Prefab/Stage/FieldPrefab");
+
+            var field = Instantiate(_FieldPrefab).GetComponent<Field>();
+            field.Stage = stage;
+
+            var data = JsonConvert.DeserializeObject<FieldData>(Resources.Load<TextAsset>("Stage/FieldData/" + filename).text);
+            field.ID = data.ID;
+            field.Name = data.Name;
+            field.Discription = data.Discription;
+            field.Width = data.Width;
+            field.Depth = data.Depth;
+
+            field._Squares = new Square[field.Width, field.Depth];
+            foreach(var row in data.Squares)
+            {
+                foreach(var sd in row)
+                {
+                    var square = Square.Create(sd, field);
+                    field._Squares[square.Position.RoundX, square.Position.RoundY] = square;
+                    square.transform.SetParent(field.transform);
+                }
+            }
+            field.SetParameters(data.Parameters);
+            foreach(var item in data.MapObjects)
+            {
+                var m = MapObject.Create(item);
+                if (m != null)
+                    field.Stage.Units.Add(m);
+            }
+
+            return field;
+        }
+
+        public void SetParameters(Dictionary<string, string> parameters)
+        {
+            if (parameters == null)
+                return;
+            foreach(var item in parameters)
+            {
+                switch(item.Key)
+                {
+                }
+            }
+        }
+
+        public bool Contains(Point position)
+        {
+            if (position.RoundX < 0 || Width - 1 < position.RoundX)
+                return false;
+            if (position.RoundY < 0 || Depth - 1 < position.RoundY)
+                return false;
+
+            return true;
+        }
 
         #region Square
         public Square this[Point location]
         {
             get
             {
-                return this[location.X, location.Y];
+                return this[location.RoundX, location.RoundY];
             }
             private set
             {
-                this[location.X, location.Y] = value;
+                this[location.RoundX, location.RoundY] = value;
             }
         }
 
@@ -117,27 +198,17 @@ namespace Kagekuri
         }
         #endregion
 
-        public Range GetEntireRange()
-        {
-            Range range = new Range();
-            
-            for(var i = 0;i < Width;i++)
-                for(var j = 0;j < Height;j++)
-                {
-                    if (this[i, j] != null)
-                        range.Add(new Point(i, j), 1);
-                }
-
-            return range;
-        }
     }
-    
+
     public class FieldData
     {
-        public Point Size { get; set; }
-
-        public SquareData[][] SquareDatas { get; set; }
-
-        public FieldData() { }
+        public int ID;
+        public string Name;
+        public string Discription;
+        public Dictionary<string, string> Parameters;
+        public int Width;
+        public int Depth;
+        public Square.SquareData[][] Squares;
+        public List<MapObjectData> MapObjects;
     }
 }

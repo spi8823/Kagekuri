@@ -1,30 +1,29 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Kagekuri
 {
-    /// <summary>
-    /// 状態異常
-    /// 攻撃力アップや素早さダウンなど
-    /// ユニットがリストで所持している
-    /// そのユニットが行動するとき、あるいはそのユニットに対して行動がなされるとき、Affetを実行する
-    /// </summary>
     public abstract class Condition
     {
-        public CharacterUnit Unit { get; protected set; }
-        public double StartTime { get; protected set; }
+        public ActiveUnit Owner { get; protected set; }
+        public int Duration { get; protected set; }
+        public double ElapsedTime { get; protected set; }
 
-        public Condition(CharacterUnit unit, double time)
+        public Condition(ActiveUnit owner)
         {
-            Unit = unit;
-            StartTime = time;
+            Owner = owner; 
         }
 
-        public abstract bool Affect(AffectType type);
-    }
+        public bool Elapse(double time)
+        {
+            ElapsedTime += time;
+            if (ElapsedTime < Duration)
+                return false;
+            else
+                return true;
+        }
 
-    public enum AffectType
-    {
-
+        public abstract IEnumerator Affect();
     }
 }

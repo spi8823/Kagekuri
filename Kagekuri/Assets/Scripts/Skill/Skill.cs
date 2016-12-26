@@ -1,69 +1,67 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections;
-
+using System.Collections.Generic;
+using UnityEngine;
+using Newtonsoft.Json;
 
 namespace Kagekuri
 {
-    public enum SkillType
-    {
-        Test1, Test2,  
-    }
-
-    /// <summary>
-    /// キャラクターが持つ技
-    /// クラスメソッド：Skill.GetSkill(SkillType)でインスタンスを取得
-    /// IsAvailable()で使用可能か判定
-    /// Do()で使用
-    /// </summary>
     public abstract class Skill
     {
-        public int RequiredAP { get; protected set; }
-        public int RequiredMP { get; protected set; }
-
-        public Range Range { get; protected set; }
+        public ActiveUnit Owner;
+        public string Name { get; protected set; }
+        public string Discription { get; protected set; }
         public int Level { get; protected set; }
-        public int ExP { get; protected set; }
+        public int Exp { get; protected set; }
+        public virtual int CostSP { get { throw new NotImplementedException(); } }
+        public virtual int CostAP { get { throw new NotImplementedException(); } }
+        public virtual Range UsableRange { get { throw new NotImplementedException(); } }
+        public virtual Range EffectiveRange { get { throw new NotImplementedException(); } }
 
-        public Skill(CharacterUnit unit, SkillData data)
+        public Skill(SkillData data, ActiveUnit owner)
         {
-            SetLevel(data.Level);
-            ExP = data.ExP;
+            Owner = owner;
+            Level = data.Level;
+            Exp = data.Exp;
         }
 
-        public virtual IEnumerator Use()
+        public abstract bool IsAvailable();
+
+        public IEnumerator<bool?> Use()
         {
-            Debug.Log("実装されてないよ！！");
-            yield break;
+            IEnumerator coroutine = BattleSceneManager.Instance.Stage.Field.SelectSquare(Owner.Position, UsableRange);
+            while (coroutine.MoveNext()) yield return null;
+
+            var square = coroutine.Current as Square;
+            var value = UsableRange.Points[square.Position - Owner.Position];
+            coroutine = Perform(square, value);
         }
 
-        protected virtual void SetLevel(int level)
-        {
-            Level = level;
-            Range = new Range();
-        }
+        public abstract IEnumerator Perform(Square target, double value);
 
-        public virtual bool IsAvailable() { return true; }
-
-        public static Skill GetSkill(CharacterUnit unit, SkillData data)
+        public static Skill Get(SkillData data, ActiveUnit owner)
         {
             Skill skill = null;
             switch(data.Type)
             {
-                case SkillType.Test1:
-                    skill = new TestSkill1(unit, data);
-                    break;
-                case SkillType.Test2:
-                    skill = new TestSkill2(unit, data);
-                    break;
             }
             return skill;
         }
     }
 
+    public enum SkillType
+    {
+    }
+
+    [JsonObject("SkillData")]
+    [System.Serializable]
     public class SkillData
     {
+        [JsonProperty("Type")]
         public SkillType Type;
+        [JsonProperty("Level")]
         public int Level;
-        public int ExP;
+        [JsonProperty("Exp")]
+        public int Exp;
     }
 }
