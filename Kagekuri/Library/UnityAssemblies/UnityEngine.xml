@@ -1096,12 +1096,16 @@
     </member>
     <member name="M:UnityEngine.AndroidJavaObject.GetRawClass">
       <summary>
-        <para>Retrieve the raw jclass pointer to the Java class.</para>
+        <para>Retrieves the raw &lt;tt&gt;jclass&lt;/tt&gt; pointer to the Java class.
+
+Note: Using raw JNI functions requires advanced knowledge of the Android Java Native Interface (JNI). Please take note.</para>
       </summary>
     </member>
     <member name="M:UnityEngine.AndroidJavaObject.GetRawObject">
       <summary>
-        <para>Retrieve the raw jobject pointer to the Java object.</para>
+        <para>Retrieves the raw &lt;tt&gt;jobject&lt;/tt&gt; pointer to the Java object.
+
+Note: Using raw JNI functions requires advanced knowledge of the Android Java Native Interface (JNI). Please take note.</para>
       </summary>
     </member>
     <member name="M:UnityEngine.AndroidJavaObject.GetStatic(System.String)">
@@ -1169,7 +1173,9 @@
     </member>
     <member name="T:UnityEngine.AndroidJNI">
       <summary>
-        <para>'Raw' JNI interface to Android Dalvik (Java) VM from Mono (CS/JS).</para>
+        <para>'Raw' JNI interface to Android Dalvik (Java) VM from Mono (CS/JS).
+
+Note: Using raw JNI functions requires advanced knowledge of the Android Java Native Interface (JNI). Please take note.</para>
       </summary>
     </member>
     <member name="M:UnityEngine.AndroidJNI.AllocObject(System.IntPtr)">
@@ -2177,7 +2183,9 @@
     </member>
     <member name="T:UnityEngine.AndroidJNIHelper">
       <summary>
-        <para>Helper interface for JNI interaction; signature creation and method lookups.</para>
+        <para>Helper interface for JNI interaction; signature creation and method lookups.
+
+Note: Using raw JNI functions requires advanced knowledge of the Android Java Native Interface (JNI). Please take note.</para>
       </summary>
     </member>
     <member name="P:UnityEngine.AndroidJNIHelper.debug">
@@ -2682,7 +2690,7 @@
     </member>
     <member name="M:UnityEngine.AnimationClip.EnsureQuaternionContinuity">
       <summary>
-        <para>In order to insure better interpolation of quaternions, call this function after you are finished setting animation curves.</para>
+        <para>Realigns quaternion keys to ensure shortest interpolation paths.</para>
       </summary>
     </member>
     <member name="M:UnityEngine.AnimationClip.SampleAnimation(UnityEngine.GameObject,System.Single)">
@@ -8518,10 +8526,10 @@ The default value is Camera.MonoOrStereoscopicEye.Left, so Camera.MonoOrStereosc
     </member>
     <member name="M:UnityEngine.Canvas.GetETC1SupportedCanvasMaterial">
       <summary>
-        <para>Gets or generates the ETC1 material.</para>
+        <para>Gets or generates the ETC1 Material.</para>
       </summary>
       <returns>
-        <para>The generated ETC1 material from the Canvas.</para>
+        <para>The generated ETC1 Material from the Canvas.</para>
       </returns>
     </member>
     <member name="T:UnityEngine.CanvasGroup">
@@ -8696,7 +8704,7 @@ See Also: CanvasRenderer.EnableRectClipping, CanvasRenderer.DisableRectClipping.
     </member>
     <member name="M:UnityEngine.CanvasRenderer.SetAlphaTexture(UnityEngine.Texture)">
       <summary>
-        <para>The Alpha Texture that will be passed to the shader under the _AlphaTex property.</para>
+        <para>The Alpha Texture that will be passed to the Shader under the _AlphaTex property.</para>
       </summary>
       <param name="texture">The Texture to be passed.</param>
     </member>
@@ -20438,7 +20446,7 @@ GUILayout.MaxHeight, GUILayout.ExpandWidth, GUILayout.ExpandHeight.</param>
     </member>
     <member name="M:UnityEngine.GUIStyle.CalcSize(UnityEngine.GUIContent)">
       <summary>
-        <para>Calculate the size of a some content if it is rendered with this style.</para>
+        <para>Calculate the size of some content if it is rendered with this style.</para>
       </summary>
       <param name="content"></param>
     </member>
@@ -25411,7 +25419,7 @@ Only usable on Android, Windows Phone or Windows Tablets.</para>
     </member>
     <member name="F:UnityEngine.LightmapsMode.SeparateDirectional">
       <summary>
-        <para>Directional information for direct light is stored separately from directional information for indirect light, encoded as 4 lightmaps.</para>
+        <para>Deprecated in Unity 5.5, please use CombinedDirectional instead. Directional information for direct light is stored separately from directional information for indirect light, encoded as 4 lightmaps. </para>
       </summary>
     </member>
     <member name="T:UnityEngine.LightmapsModeLegacy">
@@ -31525,24 +31533,67 @@ If a string, the string will be converted to raw bytes via &lt;a href="http:msdn
     </member>
     <member name="M:UnityEngine.Object.Instantiate(UnityEngine.Object)">
       <summary>
-        <para>Returns a copy of the object original.</para>
+        <para>Clones the object original and returns the clone.</para>
       </summary>
       <param name="original">An existing object that you want to make a copy of.</param>
-      <param name="position">Position for the new object (default Vector3.zero).</param>
-      <param name="rotation">Orientation of the new object (default Quaternion.identity).</param>
+      <param name="position">Position for the new object.</param>
+      <param name="rotation">Orientation of the new object.</param>
+      <param name="parent">Parent that will be assigned to the new object.</param>
+      <param name="instantiateInWorldSpace">If when assigning the parent the original world position should be maintained.</param>
       <returns>
-        <para>A clone of the original object.</para>
+        <para>The instantiated clone.</para>
+      </returns>
+    </member>
+    <member name="M:UnityEngine.Object.Instantiate(UnityEngine.Object,UnityEngine.Transform)">
+      <summary>
+        <para>Clones the object original and returns the clone.</para>
+      </summary>
+      <param name="original">An existing object that you want to make a copy of.</param>
+      <param name="position">Position for the new object.</param>
+      <param name="rotation">Orientation of the new object.</param>
+      <param name="parent">Parent that will be assigned to the new object.</param>
+      <param name="instantiateInWorldSpace">If when assigning the parent the original world position should be maintained.</param>
+      <returns>
+        <para>The instantiated clone.</para>
+      </returns>
+    </member>
+    <member name="M:UnityEngine.Object.Instantiate(UnityEngine.Object,UnityEngine.Transform,System.Boolean)">
+      <summary>
+        <para>Clones the object original and returns the clone.</para>
+      </summary>
+      <param name="original">An existing object that you want to make a copy of.</param>
+      <param name="position">Position for the new object.</param>
+      <param name="rotation">Orientation of the new object.</param>
+      <param name="parent">Parent that will be assigned to the new object.</param>
+      <param name="instantiateInWorldSpace">If when assigning the parent the original world position should be maintained.</param>
+      <returns>
+        <para>The instantiated clone.</para>
       </returns>
     </member>
     <member name="M:UnityEngine.Object.Instantiate(UnityEngine.Object,UnityEngine.Vector3,UnityEngine.Quaternion)">
       <summary>
-        <para>Returns a copy of the object original.</para>
+        <para>Clones the object original and returns the clone.</para>
       </summary>
       <param name="original">An existing object that you want to make a copy of.</param>
-      <param name="position">Position for the new object (default Vector3.zero).</param>
-      <param name="rotation">Orientation of the new object (default Quaternion.identity).</param>
+      <param name="position">Position for the new object.</param>
+      <param name="rotation">Orientation of the new object.</param>
+      <param name="parent">Parent that will be assigned to the new object.</param>
+      <param name="instantiateInWorldSpace">If when assigning the parent the original world position should be maintained.</param>
       <returns>
-        <para>A clone of the original object.</para>
+        <para>The instantiated clone.</para>
+      </returns>
+    </member>
+    <member name="M:UnityEngine.Object.Instantiate(UnityEngine.Object,UnityEngine.Vector3,UnityEngine.Quaternion,UnityEngine.Transform)">
+      <summary>
+        <para>Clones the object original and returns the clone.</para>
+      </summary>
+      <param name="original">An existing object that you want to make a copy of.</param>
+      <param name="position">Position for the new object.</param>
+      <param name="rotation">Orientation of the new object.</param>
+      <param name="parent">Parent that will be assigned to the new object.</param>
+      <param name="instantiateInWorldSpace">If when assigning the parent the original world position should be maintained.</param>
+      <returns>
+        <para>The instantiated clone.</para>
       </returns>
     </member>
     <member name="M:UnityEngine.Object.Instantiate(T)">
@@ -38064,6 +38115,15 @@ frame. Minimum value is 1 and maximum is 33.</para>
       <summary>
         <para>The starting point of the ray in world space.</para>
       </summary>
+    </member>
+    <member name="M:UnityEngine.Ray2D.#ctor(UnityEngine.Vector2,UnityEngine.Vector2)">
+      <summary>
+        <para>Creates a 2D ray starting at origin along direction.</para>
+      </summary>
+      <param name="Vector2">origin</param>
+      <param name="Vector2">direction</param>
+      <param name="origin"></param>
+      <param name="direction"></param>
     </member>
     <member name="M:UnityEngine.Ray2D.GetPoint(System.Single)">
       <summary>
@@ -45729,7 +45789,7 @@ Returns NULL if there is no associated alpha texture for the source sprite. This
     </member>
     <member name="P:UnityEngine.SystemInfo.usesReversedZBuffer">
       <summary>
-        <para>Does the current platform use a reversed Z-Buffer (1-&gt;0)? (Read Only)</para>
+        <para>This property is true if the current platform uses a reversed depth buffer (where values range from 1 at the near plane and 0 at far plane), and false if the depth buffer is normal (0 is near, 1 is far). (Read Only)</para>
       </summary>
     </member>
     <member name="M:UnityEngine.SystemInfo.SupportsRenderTextureFormat(UnityEngine.RenderTextureFormat)">
@@ -47891,7 +47951,7 @@ Returns NULL if there is no associated alpha texture for the source sprite. This
     </member>
     <member name="T:UnityEngine.TooltipAttribute">
       <summary>
-        <para>Specify a tooltip for a field.</para>
+        <para>Specify a tooltip for a field in the Inspector window.</para>
       </summary>
     </member>
     <member name="F:UnityEngine.TooltipAttribute.tooltip">
