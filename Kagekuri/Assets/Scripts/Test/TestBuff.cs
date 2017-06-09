@@ -1,16 +1,26 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TestBuff : MonoBehaviour {
+namespace Kagekuri
+{
+    public class TestBuff : Condition
+    {
+        public TestBuff(ActiveUnit owner) : base(owner)
+        {
+            Duration = 100;
+        }
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+        public override IEnumerator Affect()
+        {
+            Owner.Status.Agility *= 2;
+            yield return null;
+        }
+
+        public override void Overlaid(Condition condition)
+        {
+            Duration += condition.Duration;
+        }
+    }
 }

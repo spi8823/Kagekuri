@@ -61,7 +61,8 @@ namespace Kagekuri
                 while (coroutine.MoveNext()) yield return null;
             }
 
-            Owner.SetAP(Math.Max(Owner.Status.AP - GetMoveCost(path).Value - BaseCost, 0));
+            coroutine = Owner.ConsumeAP(GetMoveCost(path).Value);
+            while (coroutine.MoveNext()) yield return null;
             yield return false;
         }
 
@@ -146,7 +147,7 @@ namespace Kagekuri
             if (path == null)
                 return null;
             else
-                return path.Count * CostAP;
+                return path.Count * CostAP + BaseCost;
         }
 
         public bool CanMove(Point from, Point to)

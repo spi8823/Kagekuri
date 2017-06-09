@@ -35,7 +35,13 @@
       "RawAgility": 8,
       "RawLuck": 5,
       "RawJump": 0,
-      "Skills": [],
+      "Skills": [
+        {
+          "Type": 0,
+          "Level": 1,
+          "Exp": 0
+        }
+      ],
       "Items": []
     },
     {
@@ -69,7 +75,13 @@
       "RawAgility": 9,
       "RawLuck": 5,
       "RawJump": 0,
-      "Skills": [],
+      "Skills": [
+        {
+          "Type": 1,
+          "Level": 1,
+          "Exp": 0
+        }
+      ],
       "Items": []
     }
   ]

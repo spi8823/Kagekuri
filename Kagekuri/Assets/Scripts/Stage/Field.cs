@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace Kagekuri
@@ -19,7 +20,7 @@ namespace Kagekuri
 
         private Square[,] _Squares { get; set; }
 
-        public IEnumerator<Square> SelectSquare(Point startPosition, Range range)
+        public IEnumerator<Square> SelectSquare(Point startPosition, Range range, System.Func<Square, bool> selector = null)
         {
             var selectedPosition = startPosition;
             var prefab = Resources.Load<GameObject>("Prefab/Other/MoveDestinationCandidatePanel");
@@ -29,7 +30,10 @@ namespace Kagekuri
             {
                 panel = Instantiate(prefab);
                 var position = item.Key;
-                position.Z = this[item.Key].Height - 0.01;
+                var square = this[position];
+                if (square == null)
+                    continue;
+                position.Z = square.Height - 0.01;
                 panel.transform.position = position.ToUnityPosition();
                 list.Add(panel);
             }
@@ -45,8 +49,14 @@ namespace Kagekuri
                     {
                         if(item.Key.EqualsRoughly(selectedPosition))
                         {
-                            yield return this[selectedPosition];
-                            yield break;
+                            var s = this[selectedPosition];
+                            if (selector == null || selector(s))
+                            {
+                                yield return s;
+                                yield break;
+                            }
+                            else
+                                break;
                         }
                     }
                 }

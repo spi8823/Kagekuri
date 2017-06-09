@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Newtonsoft.Json;
 
@@ -14,6 +15,8 @@ namespace Kagekuri
         public List<Skill> Skills { get; protected set; }
         public List<Condition> Conditions { get; protected set; }
         public List<Item> Items { get; protected set; }
+
+        public List<Skill> SkillLog { get; protected set; }
 
         public bool IsCharging { get; protected set; }
 
@@ -33,6 +36,7 @@ namespace Kagekuri
         public virtual IEnumerator Act()
         {
             Status.Reset();
+            SkillLog = new List<Skill>();
             IEnumerator coroutine;
             foreach (var condition in Conditions)
             {
@@ -60,6 +64,11 @@ namespace Kagekuri
         public virtual void InitializeSkills(List<SkillData> datas)
         {
             Skills = new List<Skill>();
+            foreach(var data in datas)
+            {
+                var skill = Skill.Get(data, this);
+                Skills.Add(skill);
+            }
         }
 
         public virtual void InitializeConditions()
@@ -120,6 +129,43 @@ namespace Kagekuri
             }
             unit.Initialize(data);
             return unit;
+        }
+
+        public virtual IEnumerator Damaged(int damage)
+        {
+            Status.HP -= damage;
+            if (Status.HP <= 0)
+                Debug.Log("Died!");
+            yield return null;
+        }
+
+        public virtual IEnumerator ConsumeSP(int sp)
+        {
+            Status.SP -= sp;
+            yield return null;
+        }
+
+        public virtual IEnumerator ConsumeAP(int ap)
+        {
+            Status.AP -= ap;
+            yield return null;
+        }
+
+        public virtual bool AddCondition(Condition condition, double probability)
+        {
+            var r = Random.Range(0, 1);
+            if (r <= probability)
+            {
+                if (Conditions.Exists(c => c.GetType() == condition.GetType()))
+                    Conditions.Find(c => c.GetType() == condition.GetType()).Overlaid(condition);
+                else
+                    Conditions.Add(condition);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 

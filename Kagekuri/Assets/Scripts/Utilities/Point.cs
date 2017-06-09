@@ -76,9 +76,14 @@ namespace Kagekuri
             return new Point(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
         } 
 
+        public static Point operator -(Point a)
+        {
+            return new Point(-a.X, -a.Y, -a.Z);
+        }
+
         public static Point operator -(Point a, Point b)
         {
-            return new Point(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+            return a + -b;
         }
 
         public static bool operator ==(Point a, Point b)

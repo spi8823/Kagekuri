@@ -30,10 +30,12 @@ namespace Kagekuri
 
                 if (result != null)
                 {
-                    if (!Owner.Conditions.Exists(c => c is SkillLog))
-                        Owner.Conditions.Add(new SkillLog(Owner));
+                    Owner.SkillLog.Add(skill);
+                    coroutine = Owner.ConsumeAP(skill.CostAP);
+                    while (coroutine.MoveNext()) yield return null;
+                    coroutine = Owner.ConsumeSP(skill.CostSP);
+                    while (coroutine.MoveNext()) yield return null;
 
-                    (Owner.Conditions.Find(c => c is SkillLog) as SkillLog).Add(skill);
                     yield return result;
                     yield break;
                 }
@@ -49,7 +51,7 @@ namespace Kagekuri
         public IEnumerator<Skill> SelectSkill()
         {
             Debug.Log("実装してない");
-            yield return null;
+            yield return Owner.Skills[0];
         }
     }
 }

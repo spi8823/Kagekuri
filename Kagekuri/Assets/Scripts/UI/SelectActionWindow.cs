@@ -23,7 +23,8 @@ namespace Kagekuri
         public IEnumerator<Action> Show(List<Action> actions)
         {
             _Panel.gameObject.SetActive(true);
-            _Panel.anchorMax = new Vector2(0.2f, 0.4f + 0.3f * actions.Count / 4f);
+            _Panel.sizeDelta = new Vector2(150, 40 * actions.Count);
+            //_Panel.anchorMax = new Vector2(0.2f, 0.4f + 0.3f * actions.Count / 4f);
             if (_ButtonPrefab == null)
                 _ButtonPrefab = Resources.Load<GameObject>("Prefab/UI/SelectActionButton");
 

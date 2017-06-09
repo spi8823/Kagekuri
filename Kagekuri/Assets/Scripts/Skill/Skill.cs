@@ -9,14 +9,15 @@ namespace Kagekuri
     public abstract class Skill
     {
         public ActiveUnit Owner;
-        public string Name { get; protected set; }
-        public string Discription { get; protected set; }
+        public string Name { get { throw new NotImplementedException(); } }
+        public string Discription { get { throw new NotImplementedException(); } }
         public int Level { get; protected set; }
         public int Exp { get; protected set; }
         public virtual int CostSP { get { throw new NotImplementedException(); } }
         public virtual int CostAP { get { throw new NotImplementedException(); } }
         public virtual Range UsableRange { get { throw new NotImplementedException(); } }
         public virtual Range EffectiveRange { get { throw new NotImplementedException(); } }
+        public virtual Func<Square, bool> Selector { get { throw new NotImplementedException(); } }
 
         public Skill(SkillData data, ActiveUnit owner)
         {
@@ -25,25 +26,58 @@ namespace Kagekuri
             Exp = data.Exp;
         }
 
-        public abstract bool IsAvailable();
-
-        public IEnumerator<bool?> Use()
+        public virtual bool IsAvailable()
         {
-            IEnumerator coroutine = BattleSceneManager.Instance.Stage.Field.SelectSquare(Owner.Position, UsableRange);
-            while (coroutine.MoveNext()) yield return null;
-
-            var square = coroutine.Current as Square;
-            var value = UsableRange.Points[square.Position - Owner.Position];
-            coroutine = Perform(square, value);
+            return (CostSP <= Owner.Status.SP) && (CostAP <= Owner.Status.AP); 
         }
 
-        public abstract IEnumerator Perform(Square target, double value);
+        /// <summary>
+        /// スキルが選択された（使用された）ときに呼ぶ関数
+        /// </summary>
+        /// <returns>スキルを使用した後、ターンを終了するかどうか</returns>
+        public IEnumerator<bool?> Use()
+        {
+            IEnumerator coroutine = BattleSceneManager.Instance.Stage.Field.SelectSquare(Owner.Position, UsableRange + Owner.Position, Selector);
+            while (coroutine.MoveNext()) yield return null;
+            BattleSceneManager.Instance.Stage.Field.DeletePanels();
+
+            var square = coroutine.Current as Square;
+            if(square == null)
+            {
+                yield return false;
+                yield break;
+            }
+            var value = UsableRange[square.Position - Owner.Position];
+            coroutine = Perform(square, value);
+            while (coroutine.MoveNext()) yield return null;
+            var result = (bool?)coroutine.Current;
+            coroutine = Owner.ConsumeSP(CostSP);
+            while (coroutine.MoveNext()) yield return null;
+            coroutine = Owner.ConsumeAP(CostAP);
+            while (coroutine.MoveNext()) yield return null;
+            yield return result;
+        }
+
+        /// <summary>
+        /// スキルを実行したときの関数
+        /// オーバーライトして
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public abstract IEnumerator<bool?> Perform(Square target, double value);
 
         public static Skill Get(SkillData data, ActiveUnit owner)
         {
             Skill skill = null;
             switch(data.Type)
             {
+                case SkillType.TestAttackSkill:
+                    skill = new TestAttackSkill(data, owner);
+                    break;
+                case SkillType.TestBuffSkill:
+                    skill = new TestBuffSkill(data, owner);
+                    break;
             }
             return skill;
         }
@@ -51,6 +85,7 @@ namespace Kagekuri
 
     public enum SkillType
     {
+        TestAttackSkill, TestBuffSkill
     }
 
     [JsonObject("SkillData")]

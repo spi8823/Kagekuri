@@ -7,8 +7,8 @@ namespace Kagekuri
     public abstract class Condition
     {
         public ActiveUnit Owner { get; protected set; }
-        public int Duration { get; protected set; }
-        public double ElapsedTime { get; protected set; }
+        public virtual int Duration { get; protected set; }
+        public virtual double ElapsedTime { get; protected set; }
 
         public Condition(ActiveUnit owner)
         {
@@ -25,5 +25,6 @@ namespace Kagekuri
         }
 
         public abstract IEnumerator Affect();
+        public abstract void Overlaid(Condition condition);
     }
 }

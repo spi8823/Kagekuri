@@ -1,16 +1,43 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Kagekuri
 {
     public class Range
     {
         public Dictionary<Point, double> Points { get; private set; }
+        public double EffectiveHeight { get; private set; }
 
         public Range()
         {
             Points = new Dictionary<Point, double>();
+            EffectiveHeight = 0;
+        }
+
+        public Range(Range range) : this()
+        {
+            foreach (var point in range.Points)
+            {
+                Points.Add(point.Key, point.Value);
+            }
+            EffectiveHeight = range.EffectiveHeight;
+        }
+
+        public Range(int distance, double height, Func<int, double> distanceToValue)
+            : this()
+        {
+            for (var i = -distance; i <= distance; i++)
+            {
+                for (var j = -distance + Mathf.Abs(i); j <= distance - Mathf.Abs(i); j++)
+                {
+                    Add(new Point(i, j), distanceToValue(Math.Abs(i) + Math.Abs(j)));
+                }
+            }
+
+            EffectiveHeight = height;
         }
 
         public void Add(Point point, double value)
@@ -85,6 +112,33 @@ namespace Kagekuri
         public bool IsContains(Unit unit)
         {
             return IsContains(unit.Position);
+        }
+
+        public double this[Point point]
+        {
+            get
+            {
+                if (Points.Any(p => p.Key.RoundX == point.RoundX && p.Key.RoundY == point.RoundY))
+                {
+                    var pp = Points.First(p => p.Key.RoundX == point.RoundX && p.Key.RoundY == point.RoundY);
+                    if (Mathf.Abs((float)pp.Key.Z - (float)point.Z) <= EffectiveHeight)
+                        return pp.Value;
+                    else
+                        return 0;
+                }
+                else return 0;
+            }
+        }
+
+        public static Range operator +(Range r, Point p)
+        {
+            var range = new Range();
+            foreach (var point in r.Points)
+            {
+                range.Points.Add(point.Key + p, point.Value);
+            }
+
+            return range;
         }
     }
 }
