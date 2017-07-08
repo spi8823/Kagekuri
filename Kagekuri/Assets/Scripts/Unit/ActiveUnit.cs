@@ -8,8 +8,11 @@ namespace Kagekuri
 {
     public abstract class ActiveUnit : Unit
     {
+        public const double ChargingAPRate = 1.5;
+        public const double ChargingAgilityRate = 0.5;
         public ActiveUnitType Type { get; protected set; }
         public ActiveUnitStatus Status { get; protected set; }
+        public bool IsDead { get { return Conditions.Any(c => c is Death); } }
 
         public List<Action> Actions { get; protected set; }
         public List<Skill> Skills { get; protected set; }
@@ -24,13 +27,13 @@ namespace Kagekuri
         {
             var time = 0.0;
             if (IsCharging)
-                time += (Status.MaxAP * 1.5 - Status.AP) / (Status.Agility / 2.0);
+                time += (Status.MaxAP * ChargingAPRate - Status.AP) / (Status.Agility * ChargingAgilityRate);
             else
                 time += (Status.MaxAP - Status.AP) / Status.Agility;
 
             time += (double)Status.MaxAP / Status.Agility * turn;
 
-            return time;
+            return Mathf.Max((float)time, 0);
         }
 
         public virtual IEnumerator Act()
@@ -43,12 +46,17 @@ namespace Kagekuri
                 coroutine = condition.Affect();
                 while (coroutine.MoveNext()) yield return null;
             }
-            
+
+            StatusPanel.Instance.HideAll();
+            StatusPanel.Instance.ShowMain(this);
+
             yield return null;
         }
 
         public virtual void SetIsCharging(bool isCharging)
         {
+            if (isCharging)
+                SetAP(Status.MaxAP);
             IsCharging = isCharging;
         }
 
@@ -99,12 +107,22 @@ namespace Kagekuri
 
         public void SetAP(double ap)
         {
-            Status.AP = (int)Mathf.Ceil((float)ap);
+            Status.AP = (int)Mathf.Min(Status.MaxAP, Mathf.Max((float)ap, 0));
         }
 
         public void SetAPMax()
         {
-            Status.AP = (int)(IsCharging ? Status.MaxAP * 1.5f : Status.MaxAP);
+            Status.AP = (int)(IsCharging ? Status.MaxAP * ChargingAPRate : Status.MaxAP);
+        }
+
+        public void SetSP(double sp)
+        {
+            Status.SP = (int)Mathf.Min(Status.MaxSP, Mathf.Max((float)sp, 0));
+        }
+
+        public void SetSPMax()
+        {
+            Status.SP = Status.MaxSP;
         }
 
         public virtual IEnumerator Go(Square square)
@@ -126,6 +144,9 @@ namespace Kagekuri
                 case ActiveUnitType.TestPlayableUnit:
                     unit = Instantiate(Resources.Load<GameObject>("Prefab/Unit/Ally/TestPlayableUnit")).GetComponent<ActiveUnit>();
                     break;
+                case ActiveUnitType.TestEnemyUnit:
+                    unit = Instantiate(Resources.Load<GameObject>("Prefab/Unit/Enemy/TestEnemyUnit")).GetComponent<ActiveUnit>();
+                    break;
             }
             unit.Initialize(data);
             return unit;
@@ -135,19 +156,21 @@ namespace Kagekuri
         {
             Status.HP -= damage;
             if (Status.HP <= 0)
-                Debug.Log("Died!");
+            {
+                Conditions.Add(new Death(this));
+            }
             yield return null;
         }
 
         public virtual IEnumerator ConsumeSP(int sp)
         {
-            Status.SP -= sp;
+            SetSP(Status.SP - sp);
             yield return null;
         }
 
         public virtual IEnumerator ConsumeAP(int ap)
         {
-            Status.AP -= ap;
+            SetAP(Status.AP - ap);
             yield return null;
         }
 
@@ -181,6 +204,8 @@ namespace Kagekuri
 
         public int Level;
         public int Exp;
+
+        public Camp Camp;
 
         public int AttackLevel;
         public int AttackExp;
@@ -221,6 +246,8 @@ namespace Kagekuri
         {
             Name = data.Name;
             Discription = data.Discription;
+
+            Camp = data.Camp;
 
             Level = data.Level;
             Exp = data.Exp;
@@ -281,6 +308,11 @@ namespace Kagekuri
         TestPlayableUnit, TestEnemyUnit
     }
 
+    public enum Camp
+    {
+        Ally, Hostile, Neutral
+    }
+
     /// <summary>
     /// 戦闘以外の時にユニットのデータを保持しておくためのクラス
     /// </summary>
@@ -296,6 +328,9 @@ namespace Kagekuri
 
         [JsonProperty("Type")]
         public ActiveUnitType Type;
+
+        [JsonProperty("Camp")]
+        public Camp Camp;
 
         [JsonProperty("Position")]
         public Point Position;

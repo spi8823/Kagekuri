@@ -65,15 +65,15 @@ namespace Kagekuri
                 WindowPanel = window;
 
                 var r = WindowPanel.transform as RectTransform;
-                UnitImage = r.FindChild("UnitImage").GetComponent<Image>();
-                NameText = r.FindChild("NameText").GetComponent<Text>();
-                LevelText = r.FindChild("LevelText").GetComponent<Text>();
-                HPBar = new Bar(r.FindChild("HPBar").gameObject);
-                HPText = r.FindChild("HPText").GetComponent<Text>();
-                SPBar = new Bar(r.FindChild("SPBar").gameObject);
-                SPText = r.FindChild("SPText").GetComponent<Text>();
-                APBar = new Bar(r.FindChild("APBar").gameObject);
-                APText = r.FindChild("APText").GetComponent<Text>();
+                UnitImage = r.Find("UnitImage").GetComponent<Image>();
+                NameText = r.Find("NameText").GetComponent<Text>();
+                LevelText = r.Find("LevelText").GetComponent<Text>();
+                HPBar = new Bar(r.Find("HPBar").gameObject);
+                HPText = r.Find("HPText").GetComponent<Text>();
+                SPBar = new Bar(r.Find("SPBar").gameObject);
+                SPText = r.Find("SPText").GetComponent<Text>();
+                APBar = new Bar(r.Find("APBar").gameObject);
+                APText = r.Find("APText").GetComponent<Text>();
             }
 
             public void Show(ActiveUnit target)
@@ -116,9 +116,9 @@ namespace Kagekuri
                 public Bar(GameObject bar)
                 {
                     var tf = bar.transform;
-                    Frame = tf.FindChild("Frame").GetComponent<Image>();
-                    Foreground = tf.FindChild("Foreground").GetComponent<Image>();
-                    background = tf.FindChild("Background").gameObject;
+                    Frame = tf.Find("Frame").GetComponent<Image>();
+                    Foreground = tf.Find("Foreground").GetComponent<Image>();
+                    background = tf.Find("Background").gameObject;
                     Backgrounds = new List<Image>();
                     for(var i = 0;i < Width;i++)
                     {

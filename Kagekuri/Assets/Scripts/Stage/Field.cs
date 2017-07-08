@@ -8,6 +8,7 @@ namespace Kagekuri
 {
     public class Field : MonoBehaviour
     {
+        public static Field Instance { get { return BattleSceneManager.Instance.Stage.Field; } }
         private static GameObject _FieldPrefab = null;
         public Stage Stage { get; private set; }
 

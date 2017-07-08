@@ -23,7 +23,7 @@ namespace Kagekuri
                 _Field = BattleSceneManager.Instance.Stage.Field;
             var max = (int)Owner.Status.AP / CostAP;
             var range = new Range();
-            var paths = GetShortestPaths();
+            var paths = Path.GetPaths(Owner.Position, CanMove, GetMoveCost);
             for(var i = -max;i <= max;i++)
             {
                 for(var j = -max + Mathf.Abs(i);j <= max - Mathf.Abs(i);j++)
@@ -55,6 +55,15 @@ namespace Kagekuri
 
             var to = (coroutine.Current as Square).Position;
             var path = paths[to.RoundX, to.RoundY];
+            coroutine = Shift(path);
+            while (coroutine.MoveNext()) yield return null;
+
+            yield return false;
+        }
+
+        public IEnumerator Shift(List<Square> path)
+        {
+            IEnumerator coroutine;
             foreach(var square in path)
             {
                 coroutine = Owner.Go(square);
@@ -63,7 +72,6 @@ namespace Kagekuri
 
             coroutine = Owner.ConsumeAP(GetMoveCost(path).Value);
             while (coroutine.MoveNext()) yield return null;
-            yield return false;
         }
 
         public override bool IsAvailable()
@@ -74,74 +82,6 @@ namespace Kagekuri
                 return false;
         }
 
-        public List<Square>[,] GetShortestPaths()
-        {
-            var paths = new List<Square>[_Field.Width, _Field.Depth];
-            var flags = new bool[_Field.Width, _Field.Depth];
-
-            paths[Owner.Position.RoundX, Owner.Position.RoundY] = new List<Square>();
-
-            while (true)
-            {
-                var flag = false;
-                for (var i = 0; i < _Field.Width; i++)
-                {
-                    for (var j = 0; j < _Field.Depth; j++)
-                    {
-                        if (!flags[i, j] && GetMoveCost(paths[i, j]) != null)
-                        {
-                            flag = true;
-                            break;
-                        }
-                    }
-                    if (flag)
-                        break;
-                }
-                if (!flag)
-                    break;
-
-                int? ibuffer = null;
-                int? jbuffer = null;
-                int? minCost = null;
-                for(var i = 0;i < _Field.Width;i++)
-                {
-                    for (var j = 0; j < _Field.Depth; j++)
-                    {
-                        if (flags[i, j])
-                            continue;
-                        var cost = GetMoveCost(paths[i, j]);
-                        if (cost == null)
-                            continue;
-                        if ((ibuffer == null && jbuffer == null && minCost == null) || cost < minCost)
-                        {
-                            ibuffer = i;
-                            jbuffer = j;
-                            minCost = cost;
-                        }
-                    }
-                }
-                flags[ibuffer.Value, jbuffer.Value] = true;
-                var now = new Point(ibuffer.Value, jbuffer.Value);
-                var left = now + Point.Left;
-                var right = now + Point.Right;
-                var down = now + Point.Down;
-                var up = now + Point.Up;
-                foreach(var pos in new[] { left, right, down, up})
-                {
-                    if (!_Field.Contains(pos))
-                        continue;
-                    if (flags[pos.RoundX, pos.RoundY])
-                        continue;
-                    if(CanMove(now, pos))
-                    {
-                        paths[pos.RoundX, pos.RoundY] = paths[now.RoundX, now.RoundY].Concat(new[] { _Field[pos] }).ToList();
-                    }
-                }
-            }
-
-            return paths;
-        }
-
         public int? GetMoveCost(List<Square> path)
         {
             if (path == null)
@@ -150,11 +90,11 @@ namespace Kagekuri
                 return path.Count * CostAP + BaseCost;
         }
 
-        public bool CanMove(Point from, Point to)
+        public bool CanMove(Point from, Point to, bool ignoreUnit = false)
         {
             var fromSquare = BattleSceneManager.Instance.Stage.Field[from];
             var toSquare = BattleSceneManager.Instance.Stage.Field[to];
-            if (toSquare.Unit != null)
+            if (!ignoreUnit && toSquare.Unit != null)
                 return false;
             else if (Math.Abs(fromSquare.Height - toSquare.Height) <= Owner.Status.Jump)
                 return true;

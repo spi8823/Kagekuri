@@ -14,7 +14,6 @@ namespace Kagekuri
 
         public override IEnumerator Affect()
         {
-            Owner.Status.Agility *= 2;
             yield return null;
         }
 

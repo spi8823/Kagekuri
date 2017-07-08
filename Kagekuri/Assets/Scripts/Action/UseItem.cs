@@ -35,8 +35,7 @@ namespace Kagekuri
 
         public override bool IsAvailable()
         {
-            Debug.Log("実装してない");
-            return true;
+            return false;
         }
     }
 }

@@ -15,13 +15,23 @@ namespace Kagekuri
 
         public TestBuffSkill(SkillData data, ActiveUnit owner) : base(data, owner) { }
 
-        public override IEnumerator<bool?> Perform(Square square, double value)
+        public override IEnumerator<bool?> Perform(Square target)
         {
-            if(square.Unit is ActiveUnit)
+            var coroutine = base.Perform(target);
+            while (coroutine.MoveNext()) yield return null;
+
+            if(target.Unit is ActiveUnit)
             {
-                var unit = square.Unit as ActiveUnit;
+                var unit = target.Unit as ActiveUnit;
+                unit.SetSPMax();
+                StatusPanel.Instance.ShowSub(unit);
             }
             yield return false;
+        }
+
+        public override double Evaluate(ActiveUnit unit)
+        {
+            return 1;
         }
     }
 }

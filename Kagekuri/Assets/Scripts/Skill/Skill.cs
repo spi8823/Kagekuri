@@ -35,7 +35,7 @@ namespace Kagekuri
         /// スキルが選択された（使用された）ときに呼ぶ関数
         /// </summary>
         /// <returns>スキルを使用した後、ターンを終了するかどうか</returns>
-        public IEnumerator<bool?> Use()
+        public IEnumerator<bool?> Select()
         {
             IEnumerator coroutine = BattleSceneManager.Instance.Stage.Field.SelectSquare(Owner.Position, UsableRange + Owner.Position, Selector);
             while (coroutine.MoveNext()) yield return null;
@@ -47,16 +47,13 @@ namespace Kagekuri
                 yield return false;
                 yield break;
             }
-            var value = UsableRange[square.Position - Owner.Position];
-            coroutine = Perform(square, value);
+            coroutine = Perform(square);
             while (coroutine.MoveNext()) yield return null;
             var result = (bool?)coroutine.Current;
-            coroutine = Owner.ConsumeSP(CostSP);
-            while (coroutine.MoveNext()) yield return null;
-            coroutine = Owner.ConsumeAP(CostAP);
-            while (coroutine.MoveNext()) yield return null;
             yield return result;
         }
+
+        public abstract double Evaluate(ActiveUnit unit);
 
         /// <summary>
         /// スキルを実行したときの関数
@@ -65,7 +62,13 @@ namespace Kagekuri
         /// <param name="target"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public abstract IEnumerator<bool?> Perform(Square target, double value);
+        public virtual IEnumerator<bool?> Perform(Square target)
+        {
+            var coroutine = Owner.ConsumeSP(CostSP);
+            while (coroutine.MoveNext()) yield return null;
+            coroutine = Owner.ConsumeAP(CostAP);
+            while (coroutine.MoveNext()) yield return null;
+        }
 
         public static Skill Get(SkillData data, ActiveUnit owner)
         {

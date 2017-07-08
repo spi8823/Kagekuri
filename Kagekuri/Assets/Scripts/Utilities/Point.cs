@@ -118,6 +118,32 @@ namespace Kagekuri
                 return false;
         }
 
+        public Direction ToDirection()
+        {
+            if(RoundX == 0 && RoundY == 0)
+            {
+                if (0 <= RoundZ)
+                    return Direction.Up;
+                else
+                    return Direction.Down;
+            }
+
+            if(Mathf.Abs(RoundY) <= Mathf.Abs(RoundX))
+            {
+                if (0 <= RoundX)
+                    return Direction.Right;
+                else
+                    return Direction.Left;
+            }
+            else 
+            {
+                if (0 <= RoundY)
+                    return Direction.Forward;
+                else
+                    return Direction.Back;
+            }
+        }
+
         public override int GetHashCode()
         {
             return 1;
@@ -127,5 +153,10 @@ namespace Kagekuri
         {
             return "(" + X + ", " + Y + ")";
         }
+    }
+
+    public enum Direction
+    {
+        Right, Left, Forward, Back, Up, Down
     }
 }

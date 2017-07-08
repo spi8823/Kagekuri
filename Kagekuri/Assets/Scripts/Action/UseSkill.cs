@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,7 +24,7 @@ namespace Kagekuri
                 if (skill == null)
                     yield break;
 
-                coroutine = skill.Use();
+                coroutine = skill.Select();
                 while (coroutine.MoveNext()) yield return null;
 
                 var result = coroutine.Current as bool?;
@@ -44,8 +45,7 @@ namespace Kagekuri
 
         public override bool IsAvailable()
         {
-            Debug.Log("実装してない");
-            return true;
+            return Owner.Skills.Any(s => s.IsAvailable());
         }
 
         public IEnumerator<Skill> SelectSkill()

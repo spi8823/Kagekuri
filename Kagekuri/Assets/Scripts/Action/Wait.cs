@@ -17,14 +17,15 @@ namespace Kagekuri
             if (Owner.Status.MaxAP <= Owner.Status.AP)
                 Owner.SetIsCharging(true);
             else
+            {
+                Owner.SetAP(0);
                 Owner.SetIsCharging(false);
-
+            }
             yield return true;
         }
 
         public override bool IsAvailable()
         {
-            Debug.Log("実装してない");
             return true;
         }
     }

@@ -46,37 +46,30 @@ namespace Kagekuri
                 Points.Add(point, value);
         }
 
-        public double? GetValue(Unit from, Unit to)
+        public double? GetValue(Point vector, Direction direction)
         {
-            Point vector = to.Position - from.Position;
-            return GetValue(vector, from.Direction);
-        }
-
-        public double? GetValue(Point vector, Point direction)
-        {
-            if (vector == Point.Right)
+            switch(direction)
             {
-                return GetValue(vector);
-            }
-            else if (vector == Point.Left)
-            {
-                return GetValue(new Point(-vector.X, -vector.Y));
-            }
-            else if (vector == Point.Up)
-            {
-                return GetValue(new Point(vector.Y, -vector.X));
-            }
-            else if (vector == Point.Down)
-            {
-                return GetValue(new Point(-vector.Y, vector.X));
-            }
-            else
-            {
-                return null;
+                case Direction.Right:
+                    return GetValue(vector);
+                case Direction.Left:
+                    return GetValue(-vector);
+                case Direction.Forward:
+                    return GetValue(new Point(vector.Y, -vector.X));
+                case Direction.Back:
+                    return GetValue(new Point(-vector.Y, vector.X));
+                default:
+                    return null;
             }
         }
 
-        public double? GetValue(Point vector)
+        public double? GetValue(Point from, Point to, Direction direction)
+        {
+            Point vector = to - from;
+            return GetValue(vector, direction);
+        }
+
+        private double? GetValue(Point vector)
         {
             foreach (var item in Points)
             {
@@ -86,35 +79,7 @@ namespace Kagekuri
             return null;
         }
 
-        public double? GetValue(Unit unit)
-        {
-            return GetValue(unit.Position);
-        }
-
-        public bool IsContains(Unit from, Unit to)
-        {
-            double? value = GetValue(from, to);
-            return value != null;
-        }
-
-        public bool IsContains(Point vector, Point direction)
-        {
-            double? value = GetValue(vector, direction);
-            return value != null;
-        }
-
-        public bool IsContains(Point vector)
-        {
-            double? value = GetValue(vector);
-            return value != null;
-        }
-
-        public bool IsContains(Unit unit)
-        {
-            return IsContains(unit.Position);
-        }
-
-        public double this[Point point]
+        public double? this[Point point]
         {
             get
             {
@@ -124,9 +89,9 @@ namespace Kagekuri
                     if (Mathf.Abs((float)pp.Key.Z - (float)point.Z) <= EffectiveHeight)
                         return pp.Value;
                     else
-                        return 0;
+                        return null;
                 }
-                else return 0;
+                else return null;
             }
         }
 

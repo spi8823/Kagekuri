@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using MoonSharp.Interpreter;
 using Newtonsoft.Json;
 
@@ -12,9 +13,11 @@ namespace Kagekuri
     /// </summary>
     public class Stage
     {
+        public static Stage Instance { get { return BattleSceneManager.Instance.Stage; } }
         public Field Field { get; private set; }
         public Script EventScript { get; private set; }
         public List<Unit> Units { get; private set; }
+        public List<ActiveUnit> ActiveUnits { get { return Units.OfType<ActiveUnit>().ToList(); } }
 
         public Stage(string filename)
         {

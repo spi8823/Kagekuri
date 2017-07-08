@@ -8,6 +8,7 @@
       "Name": "TestPlayableUnit",
       "Discription": "",
       "Type": 0,
+      "Camp": 0,
       "Position": {
         "X": 4.0,
         "Y": 4.0,
@@ -48,12 +49,13 @@
       "Name": "TestPlayableUnit",
       "Discription": "",
       "Type": 0,
+      "Camp": 0,
       "Position": {
-        "X": 6.0,
-        "Y": 7.0,
+        "X": 5.0,
+        "Y": 5.0,
         "Z": 1.0,
-        "RoundX": 6,
-        "RoundY": 7,
+        "RoundX": 5,
+        "RoundY": 5,
         "RoundZ": 1
       },
       "Level": 0,
@@ -78,6 +80,47 @@
       "Skills": [
         {
           "Type": 1,
+          "Level": 1,
+          "Exp": 0
+        }
+      ],
+      "Items": []
+    },
+    {
+      "Name": "Enemy1",
+      "Discription": "",
+      "Type": 1,
+      "Camp": 1,
+      "Position": {
+        "X": 7.0,
+        "Y": 7.0,
+        "Z": 1.0,
+        "RoundX": 7,
+        "RoundY": 7,
+        "RoundZ": 1
+      },
+      "Level": 0,
+      "Exp": 0,
+      "AttackLevel": 0,
+      "AttackExp": 0,
+      "DefenceLevel": 0,
+      "DefenceExp": 0,
+      "DexterityLevel": 0,
+      "DexterityExp": 0,
+      "ResistanceLevel": 0,
+      "ResistanceExp": 0,
+      "RawMaxHP": 100,
+      "RawMaxMP": 100,
+      "RawAttack": 5,
+      "RawDefence": 5,
+      "RawDexterity": 5,
+      "RawResistance": 5,
+      "RawAgility": 10,
+      "RawLuck": 5,
+      "RawJump": 0,
+      "Skills": [
+        {
+          "Type": 0,
           "Level": 1,
           "Exp": 0
         }

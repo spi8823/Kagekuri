@@ -41,7 +41,7 @@ namespace Kagekuri
             {
                 if (_BattleCoroutine == null) return;
                 if (!_BattleCoroutine.MoveNext())
-                    return;
+                    Application.Quit();
             }
         }
 
@@ -66,15 +66,15 @@ namespace Kagekuri
         {
             while(CheckBattleProceed())
             {
-                var activeUnits = Stage.Units.FindAll(u => u is ActiveUnit).Select(u => u as ActiveUnit).ToList();
-                var elapseTime = activeUnits.Min(u => u.GetWaitTime());
-                foreach(var activeUnit in activeUnits)
+                var elapseTime = Stage.ActiveUnits.Min(u => u.GetWaitTime());
+                foreach(var activeUnit in Stage.ActiveUnits)
                 {
                     activeUnit.Elapse(elapseTime);
                 }
 
-                var unit = activeUnits.Find(u => u.GetWaitTime() <= 0.01);
+                var unit = Stage.ActiveUnits.Find(u => u.GetWaitTime() <= 0.01);
                 unit.SetAPMax();
+                Debug.Log(unit.ToString());
                 var coroutine = unit.Act();
                 while (coroutine.MoveNext()) yield return null;
             }
@@ -82,11 +82,15 @@ namespace Kagekuri
 
         public bool CheckBattleProceed()
         {
-            return true;
+            if (!Stage.ActiveUnits.Any(u => u.Status.Camp == Camp.Ally && !u.IsDead) || !Stage.ActiveUnits.Any(u => u.Status.Camp == Camp.Hostile && !u.IsDead))
+                return false;
+            else
+                return true;
         }
 
         public IEnumerator ProceedEndPhase()
         {
+            Debug.Log("Buttle End");
             yield return null;
         }
     }
